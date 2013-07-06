@@ -10,12 +10,14 @@ class ReadController < ApplicationController
 
     current_time = Time.new
 
-    url = "http://www.goodreads.com/review/list/10669779.xml?key=#{$DEVELOPER_KEY}&v=2&shelf=read&per_page=200"
+    url = "http://www.goodreads.com/review/list/10669779.xml?key=#{$DEVELOPER_KEY}&v=2&shelf=to-read&per_page=200"
     content = open(url) { |f| f.read }
 
     doc = Nokogiri::XML(content)
 
     #doc.css("user_shelf").each { |n| print "a " + n.css("name").first + "\n" }
     @books = doc.xpath("//review/book")
+
+    @total_pages = @books.reduce(0) { |sum, book| sum + ((book.css("num_pages").first.content != "") ? Integer(book.css("num_pages").first.content) : 0) }
   end
 end

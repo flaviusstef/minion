@@ -1,3 +1,28 @@
+Total pages: <%=@total_pages%>
+<h1>Small Books (< 200 pag)</h1>
 <% for b in @books do %>
-  <p><img src="<%=b.css('image_url').first.content%>" /><%=b.css('title').first.content%></p>
+  <% if b.css('num_pages').first.content != "" && Integer(b.css('num_pages').first.content) < 200 %>
+  <p><img src="<%=b.css('image_url').first.content%>" /><%=b.css('title').first.content%>(<%=b.css('num_pages').first.content%> pag)</p>
+  <% end %>
+<% end %>
+
+<h1>Medium Books (201 - 350 pag)</h1>
+<% for b in @books do %>
+  <% if b.css('num_pages').first.content != "" && Integer(b.css('num_pages').first.content) > 201 && Integer(b.css('num_pages').first.content) < 351 %>
+  <p><img src="<%=b.css('image_url').first.content%>" /><%=b.css('title').first.content%>(<%=b.css('num_pages').first.content%> pag)</p>
+  <% end %>
+<% end %>
+
+<h1>Big Books (351 - 500 pag)</h1>
+<% for b in @books do %>
+  <% if b.css('num_pages').first.content != "" && Integer(b.css('num_pages').first.content) > 350 && Integer(b.css('num_pages').first.content) < 501 %>
+  <p><img src="<%=b.css('image_url').first.content%>" /><%=b.css('title').first.content%>(<%=b.css('num_pages').first.content%> pag)</p>
+  <% end %>
+<% end %>
+
+<h1>OMG (>500 pag)</h1>
+<% for b in @books do %>
+  <% if b.css('num_pages').first.content != "" && Integer(b.css('num_pages').first.content) > 500 %>
+  <p><img src="<%=b.css('image_url').first.content%>" /><%=b.css('title').first.content%>(<%=b.css('num_pages').first.content%> pag)</p>
+  <% end %>
 <% end %>
