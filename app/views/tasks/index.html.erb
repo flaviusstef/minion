@@ -1,0 +1,11 @@
+<form action="/tasks" method="POST">
+  <label for="task">New task:</label><input id="task" name="task" /><input type="submit" value="Add" />
+</form>
+
+<% if @tasks.empty? %>
+<h2>No tasks yet</h2>
+<% else %>
+  <% for task in @tasks %>
+    <p>- <%=task.title=%></p>
+  <% end %>
+<% end %>

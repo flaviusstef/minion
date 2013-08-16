@@ -27,3 +27,6 @@ gem 'jquery-rails'
 # RSpec
 gem 'rspec'
 gem 'rspec-rails'
+
+gem 'capybara', '1.1.2'
+
