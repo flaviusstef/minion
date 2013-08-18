@@ -15,7 +15,7 @@
 /tmp
 
 # Ignore vim files
-*.swp
+*.sw?
 
 # Ignore Goodreads cache file
 flav
