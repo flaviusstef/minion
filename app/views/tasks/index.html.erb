@@ -2,10 +2,33 @@
   <label for="task">New task:</label><input id="task" name="task" /><input type="submit" value="Add" />
 </form>
 
+<script type="text/javascript">
+  function checked_task() {
+    $(this).parent('form').submit()
+  }
+
+  $(document).ready(function(){
+    $("form.edit_task input[type='checkbox']").change(checked_task);
+    $("form.edit_task").ajaxForm()
+  });
+</script>
+
+<style>
+  input[type=checkbox]:checked + label {
+    text-decoration: line-through;
+  }
+</style>
+
 <% if @tasks.empty? %>
 <h2>No tasks yet</h2>
 <% else %>
   <% for task in @tasks %>
-    <p>- <%=task.title=%> <%= link_to "Delete", task, method: :delete, confirm: "Sure?" %></p>
+  <p>
+    <%= form_for task do |f| %>
+      <%=f.check_box :done, :id=>"task_done_#{task.id}" %>
+    <%=f.label "done_#{task.id}", task.title %>
+    <%= link_to "Delete", task, method: :delete, confirm: "Sure?" %>
+    <% end %>
+  </p>
   <% end %>
 <% end %>
