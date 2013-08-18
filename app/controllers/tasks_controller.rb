@@ -7,4 +7,9 @@ class TasksController < ApplicationController
     Task.new(title: params[:task]).save
     redirect_to '/tasks'
   end
+
+  def destroy
+    Task.delete(params[:id])
+    redirect_to '/tasks'
+  end
 end

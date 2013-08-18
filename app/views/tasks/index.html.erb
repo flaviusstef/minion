@@ -6,6 +6,6 @@
 <h2>No tasks yet</h2>
 <% else %>
   <% for task in @tasks %>
-    <p>- <%=task.title=%></p>
+    <p>- <%=task.title=%> <%= link_to "Delete", task, method: :delete, confirm: "Sure?" %></p>
   <% end %>
 <% end %>
