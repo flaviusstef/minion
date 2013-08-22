@@ -1,5 +1,9 @@
 <form action="/tasks" method="POST">
-  <label for="task">New task:</label><input id="task" name="task" /><input type="submit" value="Add" />
+  <label for="task">New task:</label>
+  <input id="task" name="task[title]" />
+  <label for="estimated_pomodoros">Pomodoros:</label>
+  <input id="estimated_pomodoros" name="task[estimated_pomodoros]" />
+  <input type="submit" value="Add" />
 </form>
 
 <script type="text/javascript">
@@ -7,10 +11,58 @@
     $(this).parent('form').submit()
   }
 
+  function CountdownTimer(duration) {
+    this.duration = duration;
+    this.onStopFunc = function() {}
+
+    this.bindTo = function(div) {
+      this.div = div;
+      this.display();
+    }
+
+    this.display = function() {
+      $("#" + this.div).show();
+      $("#" + this.div).text(this.toString());
+    }
+
+    this.toString = function() {
+      var min = Math.floor(this.duration/60);
+      var sec = this.duration % 60; 
+      return  (min < 10 ? "0" : "") + min + ":" + (sec<10 ? "0" : "") + sec;
+    }
+
+    this.start = function() {
+      this.timerFunctionHandle = setInterval(this.timerFunction.bind(this), 1000);
+    }
+
+    this.timerFunction = function() {
+      this.duration--;
+      if (this.duration == 0) {
+        $('audio')[0].play();
+        clearInterval(this.timerFunctionHandle);
+        this.onStopFunc.apply(this);
+      }
+      this.display();
+    }
+
+    this.onStop = function(func) { this.onStopFunc = func; }
+  }
+
   $(document).ready(function(){
     $("form.edit_task input[type='checkbox']").change(checked_task);
     $("form.edit_task").ajaxForm()
+
+    $('#start-pomodoro').click(function(){
+      var but = $(this);
+      but.attr("disabled", "disabled");
+      var ct = new CountdownTimer(25*60);
+      ct.bindTo("pomodoro");
+      ct.display();
+      ct.onStop(function() {but.attr("disabled", false);});
+      ct.start();
+    });
   });
+
 </script>
 
 <style>
@@ -25,10 +77,23 @@
   <% for task in @tasks %>
   <p>
     <%= form_for task do |f| %>
+    <%= link_to image_tag("trash.png"), task, method: :delete, confirm: "Sure?" %>
       <%=f.check_box :done, :id=>"task_done_#{task.id}" %>
     <%=f.label "done_#{task.id}", task.title %>
-    <%= link_to "Delete", task, method: :delete, confirm: "Sure?" %>
+    <% if task.estimated_pomodoros > 0 %>
+      <% for i in 1..task.estimated_pomodoros %>
+        <%=image_tag('pomodoro-icon-disabled.png');%>
+      <% end %>
+    <% else %>
+        <%=image_tag('pomodoro-icon-empty.png');%>
+    <% end %>
     <% end %>
   </p>
   <% end %>
 <% end %>
+
+<div style="display: none; position: absolute; right: 200px; top:0; text-align: center; font-size: 28px; padding-top: 120px;background: transparent url('<%= asset_path("pomodoro.jpg") %>') no-repeat 50% 50%; width: 150px; height: 135px; color: white;" id="pomodoro">
+  &nbsp;
+</div>
+<input type="button" id="start-pomodoro" value="Start pomodoro" />
+<%=audio_tag "dinner-bell.mp3"%>
