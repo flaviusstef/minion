@@ -1,18 +1,12 @@
-<form action="/tasks" method="POST">
-  <label for="task">New task:</label>
-  <input id="task" name="task[title]" />
-  <label for="estimated_pomodoros">Pomodoros:</label>
-  <input id="estimated_pomodoros" name="task[estimated_pomodoros]" />
-  <input type="submit" value="Add" />
-</form>
-
 <script type="text/javascript">
   function checked_task() {
     $(this).parent('form').submit()
   }
 
+  // duration is in seconds
   function CountdownTimer(duration) {
     this.duration = duration;
+    this.started = false;
     this.onStopFunc = function() {}
 
     this.bindTo = function(div) {
@@ -26,21 +20,28 @@
     }
 
     this.toString = function() {
-      var min = Math.floor(this.duration/60);
-      var sec = this.duration % 60; 
+      if (this.started)
+        var remainingSeconds = (this.expiresAt.getTime() - new Date().getTime())/1000;
+      else
+        var remainingSeconds = duration;
+      var min = Math.floor(remainingSeconds/60);
+      var sec = Math.floor(remainingSeconds % 60); 
       return  (min < 10 ? "0" : "") + min + ":" + (sec<10 ? "0" : "") + sec;
     }
 
     this.start = function() {
+      this.startTime = new Date();
+      this.expiresAt = new Date(this.startTime.getTime() + duration * 1000);
       this.timerFunctionHandle = setInterval(this.timerFunction.bind(this), 1000);
+      this.started = true;
     }
 
     this.timerFunction = function() {
-      this.duration--;
-      if (this.duration == 0) {
+      if (new Date() > this.expiresAt) {
         $('audio')[0].play();
         clearInterval(this.timerFunctionHandle);
         this.onStopFunc.apply(this);
+        this.started = false;
       }
       this.display();
     }
@@ -61,39 +62,134 @@
       ct.onStop(function() {but.attr("disabled", false);});
       ct.start();
     });
+
+    $('#task-list').sortable({
+      start: function(event, ui) {
+        ui.item.parent('ul').find('input').css("visibility", "hidden");
+        ui.item.parent('ul').find('img').css("visibility", "hidden");
+      },
+      stop: function(event, ui) {
+        ui.item.parent('ul').find('input').css("visibility", "visible");
+        ui.item.parent('ul').find('img').css("visibility", "visible");
+      }
+
+      });
+
+    $('#project-notes-content').on('mouseover', function() {
+      $(this).css('background-color', 'yellow');
+    });
+
+    $('#project-notes-content').on('mouseout', function() {
+      $(this).css('background-color', '');
+    });
+
+    $('#project-notes-content').on('click', function() {
+      $(this).hide();
+      $(this).parent().find('form').show();
+      $(this).parent().find('textarea').focus();
+    });
+
+    $('#notes textarea').on('blur', function() { $('#notes form').submit() });
+
+    $('#notes form').hide();
+
   });
 
 </script>
 
+<div style="position:absolute; right: 0px;">
+  <iframe src="https://www.google.com/calendar/embed?showTitle=0&amp;showNav=0&amp;showDate=0&amp;showPrint=0&amp;showTabs=0&amp;showCalendars=0&amp;showTz=0&amp;mode=AGENDA&amp;height=400&amp;wkst=2&amp;bgcolor=%23ffffff&amp;src=flavius.stef%40mozaicworks.com&amp;color=%23182C57&amp;ctz=Europe%2FBucharest" style=" border:solid 1px #777 " width="400" height="400" frameborder="0" scrolling="no"></iframe>
+</div>
 <style>
-  input[type=checkbox]:checked + label {
-    text-decoration: line-through;
-  }
+#projects {float:left; width: 200px;}
+#projects ul, #task-list { 
+  list-style-type: none; 
+  list-style-position: outside;
+  margin: 0;
+  padding: 0;
+}
+#projects ul li { 
+  background-color: #F5F5F5; 
+  margin: 2px 0;
+  padding: 2px 0;
+}
+
+input[type=checkbox]:checked + label {
+  text-decoration: line-through;
+  color: #AAAAAA;
+}
+
+#tasks {
+  float:left;
+  margin-left: 5px;
+}
+
+#notes {
+  float: left;
+  margin-left: 30px;
+}
 </style>
 
-<% if @tasks.empty? %>
-<h2>No tasks yet</h2>
-<% else %>
-  <% for task in @tasks %>
-  <p>
-    <%= form_for task do |f| %>
-    <%= link_to image_tag("trash.png"), task, method: :delete, confirm: "Sure?" %>
-      <%=f.check_box :done, :id=>"task_done_#{task.id}" %>
-    <%=f.label "done_#{task.id}", task.title %>
-    <% if task.estimated_pomodoros > 0 %>
-      <% for i in 1..task.estimated_pomodoros %>
-        <%=image_tag('pomodoro-icon-disabled.png');%>
-      <% end %>
-    <% else %>
-        <%=image_tag('pomodoro-icon-empty.png');%>
-    <% end %>
-    <% end %>
-  </p>
+<nav id="projects">
+  <p><strong>Projects:</strong></p>
+  <ul>
+  <% for project in @projects %>
+    <li><%=link_to project.name, project_tasks_path(project)%> (<%=project.task_count%>)</li>
   <% end %>
+  </ul>
+</nav>
+
+<div id="tasks">
+  <h2>Tasks</h2>
+  <form action="<%=project_tasks_path @selected_project%>" method="POST">
+    <label for="task">New task:</label>
+    <input id="task" name="task[title]" />
+    <label for="estimated_pomodoros">Pomodoros:</label>
+    <input id="estimated_pomodoros" name="task[estimated_pomodoros]" maxlength="2" size="2" />
+    <input type="submit" value="Add" />
+  </form>
+
+<% if @tasks.empty? %>
+  <h2>No tasks yet</h2>
+<% else %>
+  <ul id="task-list">
+<% for task in @tasks %>
+    <li>
+      <%= form_for [@selected_project, task] do |f| %>
+      <%= link_to image_tag("trash.png"), [@selected_project, task], method: :delete, confirm: "Sure?" %>
+        <%=f.check_box :done, :id=>"task_done_#{task.id}" %>
+      <%=f.label "done_#{task.id}", task.title %>
+      <% if task.estimated_pomodoros > 0 %>
+        <% for i in 1..task.estimated_pomodoros %>
+          <%=image_tag('pomodoro-icon-disabled.png');%>
+        <% end %>
+      <% else %>
+          <%=image_tag('pomodoro-icon-empty.png');%>
+      <% end %>
+      <% end %>
+    </li>
+<% end %>
+  </ul>
 <% end %>
 
-<div style="display: none; position: absolute; right: 200px; top:0; text-align: center; font-size: 28px; padding-top: 120px;background: transparent url('<%= asset_path("pomodoro.jpg") %>') no-repeat 50% 50%; width: 150px; height: 135px; color: white;" id="pomodoro">
+
+  <div style="display: none; position: absolute; right: 200px; top:0; text-align: center; font-size: 28px; padding-top: 120px;background: transparent url('<%= asset_path("pomodoro.jpg") %>') no-repeat 50% 50%; width: 150px; height: 135px; color: white;" id="pomodoro">
   &nbsp;
-</div>
-<input type="button" id="start-pomodoro" value="Start pomodoro" />
-<%=audio_tag "dinner-bell.mp3"%>
+  </div>
+  <input type="button" id="start-pomodoro" value="Start pomodoro" />
+  <%=audio_tag "dinner-bell.mp3"%>
+</div><!-- #tasks -->
+<div id="notes">
+  <h2>Notes</h2>
+  <pre id="project-notes-content">
+  <% if !@selected_project.notes %>
+No notes for the current project.
+  <% else %>
+<%=@selected_project.notes%>
+  <% end %>
+  </pre>
+  <%= form_for @selected_project do |f| %>
+    <%= f.text_area :notes %><br/>
+    <%= f.submit "Save notes" %>
+  <% end %>
+</div><!-- #notes -->

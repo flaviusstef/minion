@@ -6,12 +6,28 @@
   <%= javascript_include_tag "application" %>
   <%= javascript_include_tag "jquery.form.min" %>
   <%= csrf_meta_tags %>
+  <style>
+    #top-menu ul {
+      list-style-type: none;
+      padding-top: 30px;
+    }
+
+    #top-menu ul li {
+      float: left;
+      padding: 10px;
+    }
+  </style>
 </head>
 <body>
+  <%=image_tag('minion.jpg', align: "left", style: "padding-right: 20px;")%>
+  <nav id="top-menu">
   <ul>
     <li><a href="/read/books">Books</a></li>
-    <li><a href="/tasks">Tasks</a></li>
+    <li><a href="/projects/1/tasks">Tasks</a></li>
+    <li><a href="/projects/1/tasks?from=basecamp">Basecamp</a></li>
   </ul>
+  </nav>
+  <div style="clear:both; height:0px;">&nbsp;</div>
 <%= yield %>
 
 </body>

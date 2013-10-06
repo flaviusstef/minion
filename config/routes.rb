@@ -1,6 +1,8 @@
 BooksIRead::Application.routes.draw do
   get "read/books"
-  resources :tasks
+  resources :projects do
+    resources :tasks
+  end
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

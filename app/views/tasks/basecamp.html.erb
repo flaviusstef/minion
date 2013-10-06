@@ -1,0 +1,7 @@
+<% JSON[@response.body].each do |list| %>
+      <%="<br><b>#{list['name']}</b><br>".html_safe%>
+      <% list['assigned_todos'].each do |todo| %>
+        <%="#{todo['completed'] ? 'x' : '-'} #{todo['content']}<br>".html_safe%>
+      <% end %>
+<% end %>
+
