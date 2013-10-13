@@ -10,3 +10,4 @@ On CI machine:
     sudo apt-get install jenkins
 - install Jenkins git plugin
 - create Minion project
+
