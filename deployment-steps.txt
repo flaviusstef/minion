@@ -1,0 +1,12 @@
+On CI machine:
+- install ssh server
+    I think there is a checkbox while installing Ubuntu server
+- install git
+    apt-get install git
+- install Jenkins
+    wget -q -O - http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key | sudo apt-key add -
+    sudo sh -c 'echo deb http://pkg.jenkins-ci.org/debian binary/ > /etc/apt/sources.list.d/jenkins.list'
+    sudo apt-get update
+    sudo apt-get install jenkins
+- install Jenkins git plugin
+- create Minion project
