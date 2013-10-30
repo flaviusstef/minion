@@ -26,3 +26,5 @@ gem 'rspec-rails'
 
 gem 'capybara', '1.1.2'
 
+gem "therubyracer", :require => 'v8'
+
